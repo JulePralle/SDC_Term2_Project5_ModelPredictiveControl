@@ -61,22 +61,29 @@ N determines the number of variables optimized my the MPC. Therefore high N valu
 
 I ended up with values:
 
-N = 10 
-dt = 0.1
+`N = 10 `
+`dt = 0.1`
 
 I started with the ones which where presented in lab N=25 dt=0.05 and moved down to shown before. With my values the Horizont is set to 1 second which gave me good results as it should not be too big. 
+
+### The Cost Function 
+The cost function combines these following goals: 
+
+* minimize cte error
+* minimize epsi error
+* try to reach a target speed (ref_v)
+* minimize the use of actuators
+* ensure a smooth drive
 
 
 ### Polynomial Fitting and MPC Preprocessing
 Waypoints given by path planning module need to be transformed into the vehicle coordinate system.
 
-
-          for (size_t i = 0; i < ptsx.size(); i++) {
-            double x = ptsx[i] - px;
-            double y = ptsx[i] - px;
-
-            xvals[i] = x * cos(-psi) - y * sin(-psi);
-            yvals[i] = x * sin(-psi) + y * cos(-psi);
+     for (size_t i = 0; i < ptsx.size(); i++) {
+           double x = ptsx[i] - px;
+           double y = ptsx[i] - px;
+           xvals[i] = x * cos(-psi) - y * sin(-psi);
+           yvals[i] = x * sin(-psi) + y * cos(-psi);
           }
           
 
