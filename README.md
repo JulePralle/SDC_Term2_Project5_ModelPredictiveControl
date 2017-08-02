@@ -2,6 +2,117 @@
 Self-Driving Car Engineer Nanodegree Program
 
 ---
+[//]: # (Image References)
+
+[image1]: ./writeup/Simulator.jpg "Introduction Image of Simulator"
+[image2]: ./writeup/state.jpg "Current State"
+[image3]: ./writeup/errors.jpg "Cross track and orientation error"
+[image4]: ./writeup/actuators.jpg "Actuators Input"
+[image5]: ./writeup/nextState.jpg "Update State"
+[image6]: ./writeup/constraints.jpg "Constraints"
+[image7]: ./writeup/poly.jpg "Third order Polynomial"
+
+
+## Introduction 
+In this project a Model Predictive Control (MPC) should be implemented to drive the car around the track in the udacity simulator. The MPC uses a cost function to minimize the error between the vehicle and the trajectory. The main advantage of MPC is the fact that it allows the current timeslot to be optimized, while keeping future timeslots in account. 
+
+![alt text][image1]
+
+## The Model
+To predict where the vehicle will be in the future a kinematic model is used. Based on the previous state and the current actuator inputs the state change over time can be calculated.
+
+state:
+* x position 
+* y position
+* psi - orientation angle
+* v - velocity
+* cte - cross track error
+* epsi - angular error
+
+![alt text][image2] ![alt text][image3]
+
+actuator inputs:
+* delta - steering angle
+* a - throttle (acceleration/deceleration)
+
+![alt text][image4]
+
+Calculate the next state:
+![alt text][image5]
+
+
+by considering physical vehicle constraints:
+* delta (-25 to 25 degree)
+* a (-1 to 1)
+
+![alt text][image6]
+
+
+
+
+### Timestep Length and Elapsed Duration (N & dt)
+For this model the hyperparameters T, N and dt need to be tuned. The prediction horizon T is the duration over which the future predictions are made. The hyperparameters have the follwing relationship:
+
+`T = N * dt`
+
+N is the number of timesteps in the horizon and dt is how much time elapses between actuations.
+
+N determines the number of variables optimized my the MPC. Therefore high N value would lead to a more accurate control, but the computational cost would be high. Larger dt values result in less frequent actuations, which makes it harder to accurately approximate a continious reference trajectory. In case of a driving car, the horizon T should be a few seconds at most.
+
+I ended up with values:
+
+N = 10 
+dt = 0.1
+
+I started with the ones which where presented in lab N=25 dt=0.05 and moved down to shown before. With my values the Horizont is set to 1 second which gave me good results as it should not be too big. 
+
+
+### Polynomial Fitting and MPC Preprocessing
+Waypoints given by path planning module need to be transformed into the vehicle coordinate system.
+
+
+          for (size_t i = 0; i < ptsx.size(); i++) {
+            double x = ptsx[i] - px;
+            double y = ptsx[i] - px;
+
+            xvals[i] = x * cos(-psi) - y * sin(-psi);
+            yvals[i] = x * sin(-psi) + y * cos(-psi);
+          }
+          
+
+A third order polynomial will be used to fit approximately on those waypoint from the simulator.
+
+    auto coeffs = polyfit(xvals, yvals, 3);
+    
+![alt text][image7]
+
+
+The vehicle is always at <0, 0> in vehicle coordinate system and its heading is postive x axis of vehicle coordinate system, the x, y and psi for initial state be zero.
+
+    px = 0;
+    py = 0;
+    psi = 0;
+
+
+cte and epsi are then computed as:
+ 
+    auto cte = polyeval(coeffs, px) - py;
+    auto epsi = psi - atan(coeffs[1]);
+
+
+
+
+### Model Predictive Control with Latency:
+Real world latency is taken into account by delaying the actuations by 100 ms. As dt = latency = 100ms, our approach will be to sum of the first and second control inputs instead of just the first one. This trick enabled us to follow the yellow line much more closely and increasing the driving speed.
+
+    px += v * cos(-delta) * dt;
+    py += v * sin(-delta) * dt;
+    psi -= v * delta / Lf * dt;
+    cte += v * sin(epsi) * dt;
+    epsi -= v * delta / Lf * dt;
+    v += a * dt; 
+
+
 
 ## Dependencies
 
