@@ -1,4 +1,4 @@
-# CarND-Controls-MPC
+# Model Predictive Control
 Self-Driving Car Engineer Nanodegree Program
 
 ---
@@ -14,7 +14,7 @@ Self-Driving Car Engineer Nanodegree Program
 
 
 ## Introduction 
-In this project a Model Predictive Control (MPC) should be implemented to drive the car around the track in the udacity simulator. The MPC uses a cost function to minimize the error between the vehicle and the trajectory. The main advantage of MPC is the fact that it allows the current timeslot to be optimized, while keeping future timeslots in account. 
+In this project a Model Predictive Control (MPC) will be implemented to drive the car around the track in the udacity simulator. The MPC uses a cost function to minimize the error between the vehicle and the trajectory. The main advantage of MPC is the fact that it allows the current timeslot to be optimized, while keeping future timeslots in account. 
 
 ![alt text][image1]
 
@@ -120,6 +120,7 @@ Real world latency is taken into account by delaying the actuations by 100 ms. A
     v += a * dt; 
 
 
+# Udacity Part
 
 ## Dependencies
 
